@@ -1,8 +1,9 @@
 "use client";
 
-import { Clock, ImageOff, Pencil, Trash2 } from "lucide-react";
+import { Clock, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ImagePicker } from "@/components/menu/image-picker";
 import type { MenuItemRow } from "@/lib/types";
 
 export function ItemCard({
@@ -10,22 +11,17 @@ export function ItemCard({
   currency,
   onEdit,
   onDelete,
+  onImageChange,
 }: {
   item: MenuItemRow;
   currency: string;
   onEdit: () => void;
   onDelete: () => void;
+  onImageChange: (url: string | null) => void;
 }) {
   return (
     <div className="flex gap-3 rounded-lg border p-3">
-      <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
-        {item.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.image_url} alt="" className="size-full object-cover" />
-        ) : (
-          <ImageOff className="size-5 text-muted-foreground" />
-        )}
-      </div>
+      <ImagePicker value={item.image_url} onChange={onImageChange} size="size-16" />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
