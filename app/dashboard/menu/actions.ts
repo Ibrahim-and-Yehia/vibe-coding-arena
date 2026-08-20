@@ -2,10 +2,39 @@
 
 import { revalidatePath } from "next/cache";
 import { requireVenue } from "@/lib/auth-helpers";
+import { uploadImageToCloudinary, MAX_IMAGE_BYTES } from "@/lib/cloudinary";
 import type { ActionResult } from "@/lib/action-result";
 
 function fail(error: { message: string }): ActionResult {
   return { error: error.message };
+}
+
+// Auth-gated so the Cloudinary quota can't be hit by anyone but a signed-in
+// owner — the customer-facing app never uploads images.
+export async function uploadMenuItemImage(formData: FormData): Promise<ActionResult<{ url: string }>> {
+  const { venueId } = await requireVenue();
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) return { error: "No image selected." };
+  if (!file.type.startsWith("image/")) return { error: "Please choose an image file." };
+  if (file.size > MAX_IMAGE_BYTES) return { error: "Image must be under 5MB." };
+
+  try {
+    const url = await uploadImageToCloudinary(file, `serva/${venueId}/menu-items`);
+    return { url };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Upload failed." };
+  }
+}
+
+// Quick photo swap straight from the menu grid, without opening the full
+// item dialog — only the image changes, nothing else about the item.
+export async function updateMenuItemImage(itemId: string, imageUrl: string | null): Promise<ActionResult> {
+  const { supabase } = await requireVenue();
+  const { error } = await supabase.from("menu_items").update({ image_url: imageUrl }).eq("id", itemId);
+  if (error) return fail(error);
+  revalidatePath("/dashboard/menu");
+  return {};
 }
 
 export async function createCategory(name: string): Promise<ActionResult> {

@@ -10,7 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { CategoryManagerDialog } from "@/components/menu/category-manager-dialog";
 import { ItemDialog } from "@/components/menu/item-dialog";
 import { ItemCard } from "@/components/menu/item-card";
-import { deleteMenuItem } from "@/app/dashboard/menu/actions";
+import { deleteMenuItem, updateMenuItemImage } from "@/app/dashboard/menu/actions";
 import type { MenuCategoryRow, MenuItemRow, MenuItemOptionRow, RecipeLineRow, IngredientRow } from "@/lib/types";
 
 export function MenuManager({
@@ -52,6 +52,12 @@ export function MenuManager({
   function openEditItem(item: MenuItemRow) {
     setEditingItem(item);
     setItemDialogOpen(true);
+  }
+
+  async function handleImageChange(itemId: string, url: string | null) {
+    const result = await updateMenuItemImage(itemId, url);
+    if (result?.error) toast.error(result.error);
+    else refresh();
   }
 
   async function confirmDelete() {
@@ -123,6 +129,7 @@ export function MenuManager({
               currency={currency}
               onEdit={() => openEditItem(item)}
               onDelete={() => setDeletingItem(item)}
+              onImageChange={(url) => handleImageChange(item.id, url)}
             />
           ))}
         </div>

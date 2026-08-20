@@ -5,7 +5,7 @@ import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, Upload } from "lucide-react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,7 +14,7 @@ import { Field, FieldLabel, FieldError, FieldGroup, FieldDescription } from "@/c
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { uploadMedia } from "@/lib/storage";
+import { ImagePicker } from "@/components/menu/image-picker";
 import {
   upsertMenuItem,
   saveMenuItemOptions,
@@ -61,7 +61,6 @@ export function ItemDialog({
 }) {
   const [activeItemId, setActiveItemId] = useState<string | null>(item?.id ?? null);
   const [imageUrl, setImageUrl] = useState<string | null>(item?.image_url ?? null);
-  const [uploading, setUploading] = useState(false);
   const [options, setOptions] = useState<MenuItemOptionInput[]>([]);
   const [recipeLines, setRecipeLines] = useState<RecipeLineInput[]>([]);
   const [savingOptions, setSavingOptions] = useState(false);
@@ -127,20 +126,6 @@ export function ItemDialog({
     onSaved();
   }
 
-  async function onImagePick(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const url = await uploadMedia(file, "menu-items");
-      setImageUrl(url);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setUploading(false);
-    }
-  }
-
   async function persistOptions() {
     if (!activeItemId) return;
     setSavingOptions(true);
@@ -198,18 +183,10 @@ export function ItemDialog({
             <form onSubmit={handleSubmit(onSubmitDetails)}>
               <FieldGroup>
                 <div className="flex items-center gap-4">
-                  <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted">
-                    {imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={imageUrl} alt="" className="size-full object-cover" />
-                    ) : (
-                      <Upload className="size-5 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div>
-                    <Input type="file" accept="image/*" onChange={onImagePick} disabled={uploading} className="max-w-56" />
-                    {uploading && <p className="mt-1 text-xs text-muted-foreground">Uploading…</p>}
-                  </div>
+                  <ImagePicker value={imageUrl} onChange={setImageUrl} size="size-20" />
+                  <p className="text-sm text-muted-foreground">
+                    Click the square to {imageUrl ? "change" : "add"} a photo. JPG or PNG, up to 5MB.
+                  </p>
                 </div>
 
                 <Field data-invalid={!!errors.category_id}>
