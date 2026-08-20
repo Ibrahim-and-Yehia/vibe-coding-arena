@@ -26,6 +26,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { claimTable, placeOrder, callWaiter, getOrderingState } from "@/app/order/[slug]/actions";
 import { useStoredSession, storeSession, clearStoredSession } from "@/components/order/order-session-store";
+import { MenuAssistant } from "@/components/order/menu-assistant";
 import { computeWaitState, formatMinutesSeconds } from "@/lib/sla";
 import { cn } from "@/lib/utils";
 import type {
@@ -59,11 +60,13 @@ export function CustomerApp({
   categories,
   items,
   options,
+  assistantEnabled,
 }: {
   venue: VenueRow;
   categories: MenuCategoryRow[];
   items: MenuItemRow[];
   options: MenuItemOptionRow[];
+  assistantEnabled: boolean;
 }) {
   const storedSession = useStoredSession(venue.slug);
   const hydrated = storedSession !== undefined;
@@ -274,6 +277,18 @@ export function CustomerApp({
 
       {view === "menu" && (
         <>
+          {assistantEnabled && (
+            <MenuAssistant
+              venueId={venue.id}
+              sessionId={session.id}
+              items={items}
+              currency={venue.currency}
+              onPick={(item) =>
+                (optionsByItem[item.id] ?? []).length > 0 ? setConfiguring(item) : addToCart(item, [], "")
+              }
+            />
+          )}
+
           <div className="overflow-x-auto border-b px-5 py-2">
             <Tabs value={activeCategory} onValueChange={setActiveCategory}>
               <TabsList>

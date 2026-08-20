@@ -29,6 +29,7 @@ export default async function OrderPage(props: PageProps<"/order/[slug]">) {
       categories={categories ?? []}
       items={items ?? []}
       options={options ?? []}
+      assistantEnabled={!!process.env.GEMINI_API_KEY}
     />
   );
 }
