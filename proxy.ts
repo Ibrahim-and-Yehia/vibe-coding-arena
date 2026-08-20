@@ -35,7 +35,9 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
-  const isDashboard = path.startsWith("/dashboard");
+  // /kds (fullscreen kitchen display) needs the same signed-in-with-a-venue
+  // guarantee as /dashboard, it just renders without the dashboard chrome.
+  const isDashboard = path.startsWith("/dashboard") || path.startsWith("/kds");
   const isOnboarding = path.startsWith("/onboarding");
   const isAuthPage = path === "/login" || path === "/signup";
 
@@ -78,5 +80,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/onboarding/:path*", "/login", "/signup"],
+  matcher: ["/dashboard/:path*", "/kds/:path*", "/onboarding/:path*", "/login", "/signup"],
 };
